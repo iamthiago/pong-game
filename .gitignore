@@ -1,0 +1,22 @@
+# CMake / CLion build output
+cmake-build-*/
+build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# CLion / JetBrains IDE settings
+.idea/
+
+# Compiled objects and binaries
+*.o
+*.obj
+*.a
+*.so
+*.dylib
+*.exe
+*.out
+
+# macOS
+.DS_Store
