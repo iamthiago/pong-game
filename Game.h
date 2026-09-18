@@ -6,7 +6,10 @@
 #define SIMPLE_GAME_GAME_H
 #include <SDL.h>
 
-#endif //SIMPLE_GAME_GAME_H
+struct Vector2 {
+    float x;
+    float y;
+};
 
 class Game {
     public:
@@ -28,5 +31,10 @@ class Game {
         // Game should continue to run
         bool mIsRunning = true;
         // Renderer to draw graphics
-        SDL_Renderer* mRenderer;
+        SDL_Renderer* mRenderer = nullptr;
+
+        Vector2 mPaddlePos{0.0f, 0.0f};
+        Vector2 mBallPos{0.0f, 0.0f};
 };
+
+#endif //SIMPLE_GAME_GAME_H

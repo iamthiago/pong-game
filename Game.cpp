@@ -3,6 +3,12 @@
 //
 #include "Game.h"
 
+constexpr int SCREEN_HEIGHT = 768;
+constexpr int SCREEN_WIDTH = 1024;
+
+constexpr int THICKNESS = 15;
+constexpr int PADDLE_HEIGHT = 100;
+
 bool Game::Initialize() {
     int sdlResult = SDL_Init(SDL_INIT_VIDEO);
 
@@ -15,8 +21,8 @@ bool Game::Initialize() {
         "Game Programming in C++ (Chapter 1)",
         100,
         100,
-        1024,
-        768,
+        SCREEN_WIDTH,
+        SCREEN_HEIGHT,
         0
     );
 
@@ -35,6 +41,9 @@ bool Game::Initialize() {
         SDL_Log("Failed to create renderer: %s", SDL_GetError());
         return false;
     }
+
+    mBallPos = Vector2{SCREEN_WIDTH/2.0f, SCREEN_HEIGHT/2.0f};
+    mPaddlePos = Vector2{THICKNESS * 2, SCREEN_HEIGHT/2.0f};
 
     return true;
 }
@@ -77,7 +86,55 @@ void Game::GenerateOutput() {
 
     SDL_RenderClear(mRenderer);
 
-    // draw something
+    SDL_SetRenderDrawColor(
+        mRenderer,
+        255,
+        255,
+        255,
+        255
+    );
+
+    SDL_Rect topWall {
+        0,
+        0,
+        SCREEN_WIDTH,
+        THICKNESS
+    };
+
+    SDL_Rect bottomWall {
+        0,
+        SCREEN_HEIGHT - THICKNESS,
+        SCREEN_WIDTH,
+        THICKNESS
+    };
+
+    SDL_Rect rightWall {
+        SCREEN_WIDTH - THICKNESS,
+        0,
+        THICKNESS,
+        SCREEN_HEIGHT
+    };
+
+    SDL_RenderFillRect(mRenderer, &topWall);
+    SDL_RenderFillRect(mRenderer, &bottomWall);
+    SDL_RenderFillRect(mRenderer, &rightWall);
+
+    SDL_Rect ball {
+        static_cast<int>(mBallPos.x - THICKNESS/2),
+        static_cast<int>(mBallPos.y - THICKNESS/2),
+        THICKNESS,
+        THICKNESS
+    };
+
+    SDL_Rect paddle {
+        static_cast<int>(mPaddlePos.x - THICKNESS/2),
+        static_cast<int>(mPaddlePos.y - PADDLE_HEIGHT/2),
+        THICKNESS,
+        PADDLE_HEIGHT
+    };
+
+    SDL_RenderFillRect(mRenderer, &ball);
+    SDL_RenderFillRect(mRenderer, &paddle);
 
     SDL_RenderPresent(mRenderer);
 }
