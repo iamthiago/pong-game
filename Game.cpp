@@ -70,9 +70,15 @@ void Game::ProcessInput() {
     if (state[SDL_SCANCODE_ESCAPE]) {
         mIsRunning = false;
     }
-}
 
-void Game::UpdateGame() {
+    mPaddleDir = 0;
+    if (state[SDL_SCANCODE_W]) {
+        mPaddleDir -= 1;
+    }
+
+    if (state[SDL_SCANCODE_S]) {
+        mPaddleDir += 1;
+    }
 }
 
 void Game::GenerateOutput() {
@@ -120,15 +126,15 @@ void Game::GenerateOutput() {
     SDL_RenderFillRect(mRenderer, &rightWall);
 
     SDL_Rect ball {
-        static_cast<int>(mBallPos.x - THICKNESS/2),
-        static_cast<int>(mBallPos.y - THICKNESS/2),
+        static_cast<int>(mBallPos.x - THICKNESS/2.0f),
+        static_cast<int>(mBallPos.y - THICKNESS/2.0f),
         THICKNESS,
         THICKNESS
     };
 
     SDL_Rect paddle {
-        static_cast<int>(mPaddlePos.x - THICKNESS/2),
-        static_cast<int>(mPaddlePos.y - PADDLE_HEIGHT/2),
+        static_cast<int>(mPaddlePos.x - THICKNESS/2.0f),
+        static_cast<int>(mPaddlePos.y - PADDLE_HEIGHT/2.0f),
         THICKNESS,
         PADDLE_HEIGHT
     };
@@ -137,6 +143,36 @@ void Game::GenerateOutput() {
     SDL_RenderFillRect(mRenderer, &paddle);
 
     SDL_RenderPresent(mRenderer);
+}
+
+void Game::UpdateGame() {
+    while (!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16))
+        ;
+
+    // Delta time is the difference in ticks from last frame
+    // (converted to seconds)
+    float deltaTime = (SDL_GetTicks() - mTicksCount) / 1000.0f;
+
+    // Limit maximum delta time value
+    if (deltaTime > 0.05f) {
+        deltaTime = 0.05f;
+    }
+
+    // if paddle has moved
+    if (mPaddleDir != 0) {
+        mPaddlePos.y += mPaddleDir * 300.0f * deltaTime;
+
+        // Make sure it does not move off screen
+        if (mPaddlePos.y < (PADDLE_HEIGHT/2.0f + THICKNESS)) {
+            mPaddlePos.y = PADDLE_HEIGHT/2.0f + THICKNESS;
+        }
+        else if (mPaddlePos.y > (SCREEN_HEIGHT - PADDLE_HEIGHT/2.0f - THICKNESS)) {
+            mPaddlePos.y = SCREEN_HEIGHT - PADDLE_HEIGHT/2.0f - THICKNESS;
+        }
+    }
+
+    // Update tick counts (for next frame)
+    mTicksCount = SDL_GetTicks();
 }
 
 void Game::RunLoop() {

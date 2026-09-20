@@ -33,7 +33,11 @@ class Game {
         // Renderer to draw graphics
         SDL_Renderer* mRenderer = nullptr;
 
+        Uint32 mTicksCount = 0;
+
         Vector2 mPaddlePos{0.0f, 0.0f};
+        int mPaddleDir = 0;
+
         Vector2 mBallPos{0.0f, 0.0f};
 };
 
