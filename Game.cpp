@@ -2,12 +2,22 @@
 // Created by Thiago Pereira on 2026-09-18.
 //
 #include "Game.h"
+#include <cmath>
 
 constexpr int SCREEN_HEIGHT = 768;
 constexpr int SCREEN_WIDTH = 1024;
 
 constexpr int THICKNESS = 15;
 constexpr int PADDLE_HEIGHT = 100;
+
+Game::Game()
+    :mWindow(nullptr)
+    ,mRenderer(nullptr)
+    ,mIsRunning(true)
+    ,mTicksCount(0)
+    ,mPaddleDir(0) {
+
+}
 
 bool Game::Initialize() {
     int sdlResult = SDL_Init(SDL_INIT_VIDEO);
@@ -42,16 +52,11 @@ bool Game::Initialize() {
         return false;
     }
 
-    mBallPos = Vector2{SCREEN_WIDTH/2.0f, SCREEN_HEIGHT/2.0f};
     mPaddlePos = Vector2{THICKNESS * 2, SCREEN_HEIGHT/2.0f};
+    mBallPos = Vector2{SCREEN_WIDTH/2.0f, SCREEN_HEIGHT/2.0f};
+    mBallVel= Vector2{-200.0f, 235.0f};
 
     return true;
-}
-
-void Game::Shutdown() {
-    SDL_DestroyRenderer(mRenderer);
-    SDL_DestroyWindow(mWindow);
-    SDL_Quit();
 }
 
 void Game::ProcessInput() {
@@ -146,6 +151,7 @@ void Game::GenerateOutput() {
 }
 
 void Game::UpdateGame() {
+    // wait until 16ms has elapse since the last frame
     while (!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16))
         ;
 
@@ -157,6 +163,9 @@ void Game::UpdateGame() {
     if (deltaTime > 0.05f) {
         deltaTime = 0.05f;
     }
+
+    // Update tick counts (for next frame)
+    mTicksCount = SDL_GetTicks();
 
     // if paddle has moved
     if (mPaddleDir != 0) {
@@ -171,8 +180,40 @@ void Game::UpdateGame() {
         }
     }
 
-    // Update tick counts (for next frame)
-    mTicksCount = SDL_GetTicks();
+    // Update ball positioning based on bal velocity
+    mBallPos.x += mBallVel.x * deltaTime;
+    mBallPos.y += mBallVel.y * deltaTime;
+
+    // Collision with top wall
+    // less than 0 means the ball is moving upwards
+    if (mBallPos.y <= THICKNESS && mBallVel.y < 0.0f) {
+        mBallVel.y *= -1.0f;
+    }
+
+    // Collision with bottom wall
+    if (mBallPos.y >= SCREEN_HEIGHT - THICKNESS && mBallVel.y > 0.0f) {
+        mBallVel.y *= -1.0f;
+    }
+
+    // Collision with the right wall
+    if (mBallPos.x >= SCREEN_WIDTH - THICKNESS && mBallVel.x > 0.0f) {
+        mBallVel.x *= -1.0f;
+    }
+
+    float diff = std::fabs(mBallPos.y - mPaddlePos.y);
+    if (
+        // Our y-difference is small enough
+        diff <= PADDLE_HEIGHT / 2.0f &&
+        // Ball is at the correct x-position
+        mBallPos.x <= 25.0f && mBallPos.x >= 20.0f &&
+        // Ball is moving to the left
+        mBallVel.x < 0.0f
+    ) {
+        mBallVel.x *= -1.0f;
+    }
+    else if (mBallPos.x < 0.0f) {
+        mIsRunning = false;
+    }
 }
 
 void Game::RunLoop() {
@@ -183,4 +224,8 @@ void Game::RunLoop() {
     }
 }
 
-Game::Game() = default;
+void Game::Shutdown() {
+    SDL_DestroyRenderer(mRenderer);
+    SDL_DestroyWindow(mWindow);
+    SDL_Quit();
+}

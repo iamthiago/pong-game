@@ -27,18 +27,19 @@ class Game {
         void GenerateOutput();
 
         // Window created by SDL
-        SDL_Window* mWindow = nullptr;
-        // Game should continue to run
-        bool mIsRunning = true;
+        SDL_Window* mWindow;
         // Renderer to draw graphics
-        SDL_Renderer* mRenderer = nullptr;
+        SDL_Renderer* mRenderer;
+        // Game should continue to run
+        bool mIsRunning;
+        // Number of ticks since start of the game
+        Uint32 mTicksCount;
 
-        Uint32 mTicksCount = 0;
+        int mPaddleDir;
 
-        Vector2 mPaddlePos{0.0f, 0.0f};
-        int mPaddleDir = 0;
-
-        Vector2 mBallPos{0.0f, 0.0f};
+        Vector2 mPaddlePos;
+        Vector2 mBallPos;
+        Vector2 mBallVel;
 };
 
 #endif //SIMPLE_GAME_GAME_H
