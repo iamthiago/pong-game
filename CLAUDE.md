@@ -17,7 +17,7 @@ This is a learning project. The user is working through the book **"Game Program
 ## Build
 
 - CMake project (C++20), usually driven from CLion. Build output goes to `cmake-build-debug/`.
-- Command-line build: `cmake -S . -B cmake-build-debug && cmake --build cmake-build-debug`, then run `./cmake-build-debug/simple_game`.
+- Command-line build: `cmake -S . -B cmake-build-debug && cmake --build cmake-build-debug`, then run `./cmake-build-debug/pong_game`.
 - New `.cpp` files must be added to `add_executable` in `CMakeLists.txt`.
 - The book uses SDL. `SDL/SDL.h` is currently a local placeholder: SDL isn't installed or linked through CMake yet (for example, `brew install sdl2` plus `find_package(SDL2)` and `target_link_libraries`). Mention this when SDL-related build or link errors come up.
 

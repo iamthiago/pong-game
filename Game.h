@@ -2,8 +2,8 @@
 // Created by Thiago Pereira on 2026-09-18.
 //
 
-#ifndef SIMPLE_GAME_GAME_H
-#define SIMPLE_GAME_GAME_H
+#ifndef PONG_GAME_GAME_H
+#define PONG_GAME_GAME_H
 #include <SDL.h>
 
 struct Vector2 {
@@ -42,4 +42,4 @@ class Game {
         Vector2 mBallVel;
 };
 
-#endif //SIMPLE_GAME_GAME_H
+#endif //PONG_GAME_GAME_H
