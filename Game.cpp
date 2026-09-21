@@ -86,70 +86,6 @@ void Game::ProcessInput() {
     }
 }
 
-void Game::GenerateOutput() {
-    SDL_SetRenderDrawColor(
-        mRenderer,
-        0,      // Red
-        0,      // Green
-        255,    // Blue
-        255     // Alpha (transparency)
-    );
-
-    SDL_RenderClear(mRenderer);
-
-    SDL_SetRenderDrawColor(
-        mRenderer,
-        255,
-        255,
-        255,
-        255
-    );
-
-    SDL_Rect topWall {
-        0,
-        0,
-        SCREEN_WIDTH,
-        THICKNESS
-    };
-
-    SDL_Rect bottomWall {
-        0,
-        SCREEN_HEIGHT - THICKNESS,
-        SCREEN_WIDTH,
-        THICKNESS
-    };
-
-    SDL_Rect rightWall {
-        SCREEN_WIDTH - THICKNESS,
-        0,
-        THICKNESS,
-        SCREEN_HEIGHT
-    };
-
-    SDL_RenderFillRect(mRenderer, &topWall);
-    SDL_RenderFillRect(mRenderer, &bottomWall);
-    SDL_RenderFillRect(mRenderer, &rightWall);
-
-    SDL_Rect ball {
-        static_cast<int>(mBallPos.x - THICKNESS/2.0f),
-        static_cast<int>(mBallPos.y - THICKNESS/2.0f),
-        THICKNESS,
-        THICKNESS
-    };
-
-    SDL_Rect paddle {
-        static_cast<int>(mPaddlePos.x - THICKNESS/2.0f),
-        static_cast<int>(mPaddlePos.y - PADDLE_HEIGHT/2.0f),
-        THICKNESS,
-        PADDLE_HEIGHT
-    };
-
-    SDL_RenderFillRect(mRenderer, &ball);
-    SDL_RenderFillRect(mRenderer, &paddle);
-
-    SDL_RenderPresent(mRenderer);
-}
-
 void Game::UpdateGame() {
     // wait until 16ms has elapse since the last frame
     while (!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16))
@@ -214,6 +150,70 @@ void Game::UpdateGame() {
     else if (mBallPos.x < 0.0f) {
         mIsRunning = false;
     }
+}
+
+void Game::GenerateOutput() {
+    SDL_SetRenderDrawColor(
+        mRenderer,
+        0,      // Red
+        0,      // Green
+        255,    // Blue
+        255     // Alpha (transparency)
+    );
+
+    SDL_RenderClear(mRenderer);
+
+    SDL_SetRenderDrawColor(
+        mRenderer,
+        255,
+        255,
+        255,
+        255
+    );
+
+    SDL_Rect topWall {
+        0,
+        0,
+        SCREEN_WIDTH,
+        THICKNESS
+    };
+
+    SDL_Rect bottomWall {
+        0,
+        SCREEN_HEIGHT - THICKNESS,
+        SCREEN_WIDTH,
+        THICKNESS
+    };
+
+    SDL_Rect rightWall {
+        SCREEN_WIDTH - THICKNESS,
+        0,
+        THICKNESS,
+        SCREEN_HEIGHT
+    };
+
+    SDL_RenderFillRect(mRenderer, &topWall);
+    SDL_RenderFillRect(mRenderer, &bottomWall);
+    SDL_RenderFillRect(mRenderer, &rightWall);
+
+    SDL_Rect ball {
+        static_cast<int>(mBallPos.x - THICKNESS/2.0f),
+        static_cast<int>(mBallPos.y - THICKNESS/2.0f),
+        THICKNESS,
+        THICKNESS
+    };
+
+    SDL_Rect paddle {
+        static_cast<int>(mPaddlePos.x - THICKNESS/2.0f),
+        static_cast<int>(mPaddlePos.y - PADDLE_HEIGHT/2.0f),
+        THICKNESS,
+        PADDLE_HEIGHT
+    };
+
+    SDL_RenderFillRect(mRenderer, &ball);
+    SDL_RenderFillRect(mRenderer, &paddle);
+
+    SDL_RenderPresent(mRenderer);
 }
 
 void Game::RunLoop() {
