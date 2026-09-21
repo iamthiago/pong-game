@@ -11,12 +11,16 @@ constexpr int THICKNESS = 15;
 constexpr int PADDLE_HEIGHT = 100;
 
 Game::Game()
-    :mWindow(nullptr)
-    ,mRenderer(nullptr)
-    ,mIsRunning(true)
-    ,mTicksCount(0)
-    ,mPaddleDir(0) {
-
+    : mWindow(nullptr)
+      , mRenderer(nullptr)
+      , mIsRunning(true)
+      , mTicksCount(0)
+      , mLeftPaddleDir(0)
+      , mLeftPaddlePos()
+      , mRightPaddleDir(0)
+      , mRightPaddlePos()
+      , mBallPos()
+      , mBallVel() {
 }
 
 bool Game::Initialize() {
@@ -52,7 +56,9 @@ bool Game::Initialize() {
         return false;
     }
 
-    mPaddlePos = Vector2{THICKNESS * 2, SCREEN_HEIGHT/2.0f};
+    mLeftPaddlePos = Vector2{THICKNESS * 2, SCREEN_HEIGHT/2.0f};
+    mRightPaddlePos = Vector2{SCREEN_WIDTH - (THICKNESS * 2), SCREEN_HEIGHT/2.0f};
+
     mBallPos = Vector2{SCREEN_WIDTH/2.0f, SCREEN_HEIGHT/2.0f};
     mBallVel= Vector2{-200.0f, 235.0f};
 
@@ -76,13 +82,22 @@ void Game::ProcessInput() {
         mIsRunning = false;
     }
 
-    mPaddleDir = 0;
+    mLeftPaddleDir = 0;
     if (state[SDL_SCANCODE_W]) {
-        mPaddleDir -= 1;
+        mLeftPaddleDir -= 1;
     }
 
     if (state[SDL_SCANCODE_S]) {
-        mPaddleDir += 1;
+        mLeftPaddleDir += 1;
+    }
+
+    mRightPaddleDir = 0;
+    if (state[SDL_SCANCODE_I]) {
+        mRightPaddleDir -= 1;
+    }
+
+    if (state[SDL_SCANCODE_K]) {
+        mRightPaddleDir += 1;
     }
 }
 
@@ -104,15 +119,28 @@ void Game::UpdateGame() {
     mTicksCount = SDL_GetTicks();
 
     // if paddle has moved
-    if (mPaddleDir != 0) {
-        mPaddlePos.y += mPaddleDir * 300.0f * deltaTime;
+    if (mLeftPaddleDir != 0) {
+        mLeftPaddlePos.y += mLeftPaddleDir * 300.0f * deltaTime;
 
         // Make sure it does not move off screen
-        if (mPaddlePos.y < (PADDLE_HEIGHT/2.0f + THICKNESS)) {
-            mPaddlePos.y = PADDLE_HEIGHT/2.0f + THICKNESS;
+        if (mLeftPaddlePos.y < (PADDLE_HEIGHT/2.0f + THICKNESS)) {
+            mLeftPaddlePos.y = PADDLE_HEIGHT/2.0f + THICKNESS;
         }
-        else if (mPaddlePos.y > (SCREEN_HEIGHT - PADDLE_HEIGHT/2.0f - THICKNESS)) {
-            mPaddlePos.y = SCREEN_HEIGHT - PADDLE_HEIGHT/2.0f - THICKNESS;
+        else if (mLeftPaddlePos.y > (SCREEN_HEIGHT - PADDLE_HEIGHT/2.0f - THICKNESS)) {
+            mLeftPaddlePos.y = SCREEN_HEIGHT - PADDLE_HEIGHT/2.0f - THICKNESS;
+        }
+    }
+
+    // if right paddle has moved
+    if (mRightPaddleDir != 0) {
+        mRightPaddlePos.y += mRightPaddleDir * 300.0f * deltaTime;
+
+        // Make sure it does not move off screen
+        if (mRightPaddlePos.y < (PADDLE_HEIGHT/2.0f + THICKNESS)) {
+            mRightPaddlePos.y = PADDLE_HEIGHT/2.0f + THICKNESS;
+        }
+        else if (mRightPaddlePos.y > (SCREEN_HEIGHT - PADDLE_HEIGHT/2.0f - THICKNESS)) {
+            mRightPaddlePos.y = SCREEN_HEIGHT - PADDLE_HEIGHT/2.0f - THICKNESS;
         }
     }
 
@@ -131,23 +159,29 @@ void Game::UpdateGame() {
         mBallVel.y *= -1.0f;
     }
 
-    // Collision with the right wall
-    if (mBallPos.x >= SCREEN_WIDTH - THICKNESS && mBallVel.x > 0.0f) {
-        mBallVel.x *= -1.0f;
-    }
+    // left and right paddle collision
+    float leftDiff = std::fabs(mBallPos.y - mLeftPaddlePos.y);
+    float rightDiff = std::fabs(mBallPos.y - mRightPaddlePos.y);
 
-    float diff = std::fabs(mBallPos.y - mPaddlePos.y);
     if (
         // Our y-difference is small enough
-        diff <= PADDLE_HEIGHT / 2.0f &&
-        // Ball is at the correct x-position
-        mBallPos.x <= 25.0f && mBallPos.x >= 20.0f &&
+        leftDiff <= PADDLE_HEIGHT / 2.0f &&
+        // Ball is at the correct x-position (left of the screen)
+        mBallPos.x <= 45.0f && mBallPos.x >= 40.0f &&
         // Ball is moving to the left
         mBallVel.x < 0.0f
     ) {
         mBallVel.x *= -1.0f;
     }
-    else if (mBallPos.x < 0.0f) {
+    else if (
+        rightDiff <= PADDLE_HEIGHT / 2.0f &&
+        (mBallPos.x <= SCREEN_WIDTH - 40.0f) && (mBallPos.x >= SCREEN_WIDTH - 45.0f) &&
+        mBallVel.x > 0.0f
+    ) {
+        mBallVel.x *= -1.0f;
+    }
+    // if ball is off screen (X position), game is over
+    else if (mBallPos.x < 0.0f || mBallPos.x > SCREEN_WIDTH) {
         mIsRunning = false;
     }
 }
@@ -185,16 +219,8 @@ void Game::GenerateOutput() {
         THICKNESS
     };
 
-    SDL_Rect rightWall {
-        SCREEN_WIDTH - THICKNESS,
-        0,
-        THICKNESS,
-        SCREEN_HEIGHT
-    };
-
     SDL_RenderFillRect(mRenderer, &topWall);
     SDL_RenderFillRect(mRenderer, &bottomWall);
-    SDL_RenderFillRect(mRenderer, &rightWall);
 
     SDL_Rect ball {
         static_cast<int>(mBallPos.x - THICKNESS/2.0f),
@@ -203,15 +229,23 @@ void Game::GenerateOutput() {
         THICKNESS
     };
 
-    SDL_Rect paddle {
-        static_cast<int>(mPaddlePos.x - THICKNESS/2.0f),
-        static_cast<int>(mPaddlePos.y - PADDLE_HEIGHT/2.0f),
+    SDL_Rect leftPaddle {
+        static_cast<int>(mLeftPaddlePos.x - THICKNESS/2.0f),
+        static_cast<int>(mLeftPaddlePos.y - PADDLE_HEIGHT/2.0f),
+        THICKNESS,
+        PADDLE_HEIGHT
+    };
+
+    SDL_Rect rightPaddle {
+        static_cast<int>(mRightPaddlePos.x - THICKNESS/2.0f),
+        static_cast<int>(mRightPaddlePos.y - PADDLE_HEIGHT/2.0f),
         THICKNESS,
         PADDLE_HEIGHT
     };
 
     SDL_RenderFillRect(mRenderer, &ball);
-    SDL_RenderFillRect(mRenderer, &paddle);
+    SDL_RenderFillRect(mRenderer, &leftPaddle);
+    SDL_RenderFillRect(mRenderer, &rightPaddle);
 
     SDL_RenderPresent(mRenderer);
 }

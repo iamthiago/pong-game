@@ -35,9 +35,12 @@ class Game {
         // Number of ticks since start of the game
         Uint32 mTicksCount;
 
-        int mPaddleDir;
+        int mLeftPaddleDir;
+        Vector2 mLeftPaddlePos;
 
-        Vector2 mPaddlePos;
+        int mRightPaddleDir;
+        Vector2 mRightPaddlePos;
+
         Vector2 mBallPos;
         Vector2 mBallVel;
 };
