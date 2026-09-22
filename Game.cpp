@@ -2,7 +2,6 @@
 // Created by Thiago Pereira on 2026-09-18.
 //
 #include "Game.h"
-#include <cmath>
 #include <numbers>
 #include <random>
 
@@ -160,7 +159,6 @@ void Game::UpdateGame() {
         }
     }
 
-    int ballsCount = NUM_BALLS;
     for (auto& b : mBalls) {
         // Update ball positioning based on bal velocity
         b.pos.x += b.vel.x * deltaTime;
@@ -198,16 +196,15 @@ void Game::UpdateGame() {
         ) {
             b.vel.x *= -1.0f;
         }
-        // if ball is off screen (X position) - decrease number of available balls
-        else if (b.pos.x < 0.0f || b.pos.x > SCREEN_WIDTH) {
-            ballsCount -= 1;
-        }
+    }
 
-        // if there are no more balls left, exit the game
-        if (ballsCount == 0) {
-            mIsRunning = false;
-            break;
-        }
+    // remove the ball from vector if it goes off screen
+    std::erase_if(mBalls, [](const Ball& b) {
+       return b.pos.x < 0.0f || b.pos.x > SCREEN_WIDTH;
+    });
+
+    if (mBalls.empty()) {
+        mIsRunning = false;
     }
 }
 
