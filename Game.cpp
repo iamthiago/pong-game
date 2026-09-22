@@ -3,12 +3,17 @@
 //
 #include "Game.h"
 #include <cmath>
+#include <numbers>
+#include <random>
 
 constexpr int SCREEN_HEIGHT = 768;
 constexpr int SCREEN_WIDTH = 1024;
 
 constexpr int THICKNESS = 15;
 constexpr int PADDLE_HEIGHT = 100;
+
+constexpr int NUM_BALLS = 5;
+constexpr float BALL_SPEED = 250.0f;
 
 Game::Game()
     : mWindow(nullptr)
@@ -19,8 +24,7 @@ Game::Game()
       , mLeftPaddlePos()
       , mRightPaddleDir(0)
       , mRightPaddlePos()
-      , mBallPos()
-      , mBallVel() {
+      , mGen(std::random_device{}()){
 }
 
 bool Game::Initialize() {
@@ -59,8 +63,20 @@ bool Game::Initialize() {
     mLeftPaddlePos = Vector2{THICKNESS * 2, SCREEN_HEIGHT/2.0f};
     mRightPaddlePos = Vector2{SCREEN_WIDTH - (THICKNESS * 2), SCREEN_HEIGHT/2.0f};
 
-    mBallPos = Vector2{SCREEN_WIDTH/2.0f, SCREEN_HEIGHT/2.0f};
-    mBallVel= Vector2{-200.0f, 235.0f};
+    std::uniform_real_distribution<float> coneDist(-std::numbers::pi / 4.0f, std::numbers::pi / 4.0f);
+    std::bernoulli_distribution goLeft(0.5);
+
+    mBalls.reserve(NUM_BALLS);
+
+    for (int i = 0; i < NUM_BALLS; i++) {
+        float angle = coneDist(mGen);
+        float dir = goLeft(mGen) ? -1.0f : 1.0f;
+        auto b = Ball{
+            Vector2{SCREEN_WIDTH/2.0f, SCREEN_HEIGHT/2.0f},
+            Vector2{dir * BALL_SPEED * std::cos(angle), BALL_SPEED * std::sin(angle)}
+        };
+        mBalls.push_back(b);
+    }
 
     return true;
 }
@@ -144,45 +160,54 @@ void Game::UpdateGame() {
         }
     }
 
-    // Update ball positioning based on bal velocity
-    mBallPos.x += mBallVel.x * deltaTime;
-    mBallPos.y += mBallVel.y * deltaTime;
+    int ballsCount = NUM_BALLS;
+    for (auto& b : mBalls) {
+        // Update ball positioning based on bal velocity
+        b.pos.x += b.vel.x * deltaTime;
+        b.pos.y += b.vel.y * deltaTime;
 
-    // Collision with top wall
-    // less than 0 means the ball is moving upwards
-    if (mBallPos.y <= THICKNESS && mBallVel.y < 0.0f) {
-        mBallVel.y *= -1.0f;
-    }
+        // Collision with top wall
+        // less than 0 means the ball is moving upwards
+        if (b.pos.y <= THICKNESS && b.vel.y < 0.0f) {
+            b.vel.y *= -1.0f;
+        }
 
-    // Collision with bottom wall
-    if (mBallPos.y >= SCREEN_HEIGHT - THICKNESS && mBallVel.y > 0.0f) {
-        mBallVel.y *= -1.0f;
-    }
+        // Collision with bottom wall
+        if (b.pos.y >= SCREEN_HEIGHT - THICKNESS && b.vel.y > 0.0f) {
+            b.vel.y *= -1.0f;
+        }
 
-    // left and right paddle collision
-    float leftDiff = std::fabs(mBallPos.y - mLeftPaddlePos.y);
-    float rightDiff = std::fabs(mBallPos.y - mRightPaddlePos.y);
+        // left and right paddle collision
+        float leftDiff = std::fabs(b.pos.y - mLeftPaddlePos.y);
+        float rightDiff = std::fabs(b.pos.y - mRightPaddlePos.y);
 
-    if (
-        // Our y-difference is small enough
-        leftDiff <= PADDLE_HEIGHT / 2.0f &&
-        // Ball is at the correct x-position (left of the screen)
-        mBallPos.x <= 45.0f && mBallPos.x >= 40.0f &&
-        // Ball is moving to the left
-        mBallVel.x < 0.0f
-    ) {
-        mBallVel.x *= -1.0f;
-    }
-    else if (
-        rightDiff <= PADDLE_HEIGHT / 2.0f &&
-        (mBallPos.x <= SCREEN_WIDTH - 40.0f) && (mBallPos.x >= SCREEN_WIDTH - 45.0f) &&
-        mBallVel.x > 0.0f
-    ) {
-        mBallVel.x *= -1.0f;
-    }
-    // if ball is off screen (X position), game is over
-    else if (mBallPos.x < 0.0f || mBallPos.x > SCREEN_WIDTH) {
-        mIsRunning = false;
+        if (
+            // Our y-difference is small enough
+            leftDiff <= PADDLE_HEIGHT / 2.0f &&
+            // Ball is at the correct x-position (left of the screen)
+            b.pos.x <= 45.0f && b.pos.x >= 40.0f &&
+            // Ball is moving to the left
+            b.vel.x < 0.0f
+        ) {
+            b.vel.x *= -1.0f;
+        }
+        else if (
+            rightDiff <= PADDLE_HEIGHT / 2.0f &&
+            (b.pos.x <= SCREEN_WIDTH - 40.0f) && (b.pos.x >= SCREEN_WIDTH - 45.0f) &&
+            b.vel.x > 0.0f
+        ) {
+            b.vel.x *= -1.0f;
+        }
+        // if ball is off screen (X position) - decrease number of available balls
+        else if (b.pos.x < 0.0f || b.pos.x > SCREEN_WIDTH) {
+            ballsCount -= 1;
+        }
+
+        // if there are no more balls left, exit the game
+        if (ballsCount == 0) {
+            mIsRunning = false;
+            break;
+        }
     }
 }
 
@@ -222,12 +247,16 @@ void Game::GenerateOutput() {
     SDL_RenderFillRect(mRenderer, &topWall);
     SDL_RenderFillRect(mRenderer, &bottomWall);
 
-    SDL_Rect ball {
-        static_cast<int>(mBallPos.x - THICKNESS/2.0f),
-        static_cast<int>(mBallPos.y - THICKNESS/2.0f),
-        THICKNESS,
-        THICKNESS
-    };
+    for (const auto& b : mBalls) {
+        SDL_Rect ball {
+            static_cast<int>(b.pos.x - THICKNESS/2.0f),
+            static_cast<int>(b.pos.y - THICKNESS/2.0f),
+            THICKNESS,
+            THICKNESS
+        };
+
+        SDL_RenderFillRect(mRenderer, &ball);
+    }
 
     SDL_Rect leftPaddle {
         static_cast<int>(mLeftPaddlePos.x - THICKNESS/2.0f),
@@ -243,7 +272,6 @@ void Game::GenerateOutput() {
         PADDLE_HEIGHT
     };
 
-    SDL_RenderFillRect(mRenderer, &ball);
     SDL_RenderFillRect(mRenderer, &leftPaddle);
     SDL_RenderFillRect(mRenderer, &rightPaddle);
 

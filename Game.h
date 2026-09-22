@@ -4,11 +4,18 @@
 
 #ifndef PONG_GAME_GAME_H
 #define PONG_GAME_GAME_H
+#include <random>
 #include <SDL.h>
+#include <vector>
 
 struct Vector2 {
     float x;
     float y;
+};
+
+struct Ball {
+    Vector2 pos;
+    Vector2 vel;
 };
 
 class Game {
@@ -41,8 +48,9 @@ class Game {
         int mRightPaddleDir;
         Vector2 mRightPaddlePos;
 
-        Vector2 mBallPos;
-        Vector2 mBallVel;
+        std::vector<Ball> mBalls;
+
+        std::mt19937 mGen;
 };
 
 #endif //PONG_GAME_GAME_H
