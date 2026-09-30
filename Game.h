@@ -19,38 +19,44 @@ struct Ball {
 };
 
 class Game {
-    public:
-        Game();
-        // Initialize the game
-        bool Initialize();
-        // Runs the game loop until the game is over
-        void RunLoop();
-        // Shutdown the game
-        void Shutdown();
-    private:
-        // Helper functions for the game loop
-        void ProcessInput();
-        void UpdateGame();
-        void GenerateOutput();
+public:
+    Game();
 
-        // Window created by SDL
-        SDL_Window* mWindow;
-        // Renderer to draw graphics
-        SDL_Renderer* mRenderer;
-        // Game should continue to run
-        bool mIsRunning;
-        // Number of ticks since start of the game
-        Uint32 mTicksCount;
+    // Initialize the game
+    bool Initialize();
 
-        int mLeftPaddleDir;
-        Vector2 mLeftPaddlePos;
+    // Runs the game loop until the game is over
+    void RunLoop();
 
-        int mRightPaddleDir;
-        Vector2 mRightPaddlePos;
+    // Shutdown the game
+    void Shutdown();
 
-        std::vector<Ball> mBalls;
+private:
+    // Helper functions for the game loop
+    void ProcessInput();
 
-        std::mt19937 mGen;
+    void UpdateGame();
+
+    void GenerateOutput();
+
+    // Window created by SDL
+    SDL_Window *mWindow;
+    // Renderer to draw graphics
+    SDL_Renderer *mRenderer;
+    // Game should continue to run
+    bool mIsRunning;
+    // Number of ticks since start of the game
+    Uint32 mTicksCount;
+
+    int mLeftPaddleDir;
+    Vector2 mLeftPaddlePos;
+
+    int mRightPaddleDir;
+    Vector2 mRightPaddlePos;
+
+    std::vector<Ball> mBalls;
+
+    std::mt19937 mGen;
 };
 
 #endif //PONG_GAME_GAME_H

@@ -23,7 +23,7 @@ Game::Game()
       , mLeftPaddlePos()
       , mRightPaddleDir(0)
       , mRightPaddlePos()
-      , mGen(std::random_device{}()){
+      , mGen(std::random_device{}()) {
 }
 
 bool Game::Initialize() {
@@ -59,8 +59,8 @@ bool Game::Initialize() {
         return false;
     }
 
-    mLeftPaddlePos = Vector2{THICKNESS * 2, SCREEN_HEIGHT/2.0f};
-    mRightPaddlePos = Vector2{SCREEN_WIDTH - (THICKNESS * 2), SCREEN_HEIGHT/2.0f};
+    mLeftPaddlePos = Vector2{THICKNESS * 2, SCREEN_HEIGHT / 2.0f};
+    mRightPaddlePos = Vector2{SCREEN_WIDTH - (THICKNESS * 2), SCREEN_HEIGHT / 2.0f};
 
     std::uniform_real_distribution<float> coneDist(-std::numbers::pi / 4.0f, std::numbers::pi / 4.0f);
     std::bernoulli_distribution goLeft(0.5);
@@ -71,7 +71,7 @@ bool Game::Initialize() {
         float angle = coneDist(mGen);
         float dir = goLeft(mGen) ? -1.0f : 1.0f;
         auto b = Ball{
-            Vector2{SCREEN_WIDTH/2.0f, SCREEN_HEIGHT/2.0f},
+            Vector2{SCREEN_WIDTH / 2.0f, SCREEN_HEIGHT / 2.0f},
             Vector2{dir * BALL_SPEED * std::cos(angle), BALL_SPEED * std::sin(angle)}
         };
         mBalls.push_back(b);
@@ -92,7 +92,7 @@ void Game::ProcessInput() {
     }
 
     // Get state of the keyboard
-    const Uint8* state = SDL_GetKeyboardState(NULL);
+    const Uint8 *state = SDL_GetKeyboardState(NULL);
     if (state[SDL_SCANCODE_ESCAPE]) {
         mIsRunning = false;
     }
@@ -118,8 +118,7 @@ void Game::ProcessInput() {
 
 void Game::UpdateGame() {
     // wait until 16ms has elapse since the last frame
-    while (!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16))
-        ;
+    while (!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16));
 
     // Delta time is the difference in ticks from last frame
     // (converted to seconds)
@@ -138,11 +137,10 @@ void Game::UpdateGame() {
         mLeftPaddlePos.y += mLeftPaddleDir * 300.0f * deltaTime;
 
         // Make sure it does not move off screen
-        if (mLeftPaddlePos.y < (PADDLE_HEIGHT/2.0f + THICKNESS)) {
-            mLeftPaddlePos.y = PADDLE_HEIGHT/2.0f + THICKNESS;
-        }
-        else if (mLeftPaddlePos.y > (SCREEN_HEIGHT - PADDLE_HEIGHT/2.0f - THICKNESS)) {
-            mLeftPaddlePos.y = SCREEN_HEIGHT - PADDLE_HEIGHT/2.0f - THICKNESS;
+        if (mLeftPaddlePos.y < (PADDLE_HEIGHT / 2.0f + THICKNESS)) {
+            mLeftPaddlePos.y = PADDLE_HEIGHT / 2.0f + THICKNESS;
+        } else if (mLeftPaddlePos.y > (SCREEN_HEIGHT - PADDLE_HEIGHT / 2.0f - THICKNESS)) {
+            mLeftPaddlePos.y = SCREEN_HEIGHT - PADDLE_HEIGHT / 2.0f - THICKNESS;
         }
     }
 
@@ -151,15 +149,14 @@ void Game::UpdateGame() {
         mRightPaddlePos.y += mRightPaddleDir * 300.0f * deltaTime;
 
         // Make sure it does not move off screen
-        if (mRightPaddlePos.y < (PADDLE_HEIGHT/2.0f + THICKNESS)) {
-            mRightPaddlePos.y = PADDLE_HEIGHT/2.0f + THICKNESS;
-        }
-        else if (mRightPaddlePos.y > (SCREEN_HEIGHT - PADDLE_HEIGHT/2.0f - THICKNESS)) {
-            mRightPaddlePos.y = SCREEN_HEIGHT - PADDLE_HEIGHT/2.0f - THICKNESS;
+        if (mRightPaddlePos.y < (PADDLE_HEIGHT / 2.0f + THICKNESS)) {
+            mRightPaddlePos.y = PADDLE_HEIGHT / 2.0f + THICKNESS;
+        } else if (mRightPaddlePos.y > (SCREEN_HEIGHT - PADDLE_HEIGHT / 2.0f - THICKNESS)) {
+            mRightPaddlePos.y = SCREEN_HEIGHT - PADDLE_HEIGHT / 2.0f - THICKNESS;
         }
     }
 
-    for (auto& b : mBalls) {
+    for (auto &b: mBalls) {
         // Update ball positioning based on bal velocity
         b.pos.x += b.vel.x * deltaTime;
         b.pos.y += b.vel.y * deltaTime;
@@ -188,8 +185,7 @@ void Game::UpdateGame() {
             b.vel.x < 0.0f
         ) {
             b.vel.x *= -1.0f;
-        }
-        else if (
+        } else if (
             rightDiff <= PADDLE_HEIGHT / 2.0f &&
             (b.pos.x <= SCREEN_WIDTH - 40.0f) && (b.pos.x >= SCREEN_WIDTH - 45.0f) &&
             b.vel.x > 0.0f
@@ -199,8 +195,8 @@ void Game::UpdateGame() {
     }
 
     // remove the ball from vector if it goes off screen
-    std::erase_if(mBalls, [](const Ball& b) {
-       return b.pos.x < 0.0f || b.pos.x > SCREEN_WIDTH;
+    std::erase_if(mBalls, [](const Ball &b) {
+        return b.pos.x < 0.0f || b.pos.x > SCREEN_WIDTH;
     });
 
     if (mBalls.empty()) {
@@ -211,10 +207,10 @@ void Game::UpdateGame() {
 void Game::GenerateOutput() {
     SDL_SetRenderDrawColor(
         mRenderer,
-        0,      // Red
-        0,      // Green
-        255,    // Blue
-        255     // Alpha (transparency)
+        0, // Red
+        0, // Green
+        255, // Blue
+        255 // Alpha (transparency)
     );
 
     SDL_RenderClear(mRenderer);
@@ -227,14 +223,14 @@ void Game::GenerateOutput() {
         255
     );
 
-    SDL_Rect topWall {
+    SDL_Rect topWall{
         0,
         0,
         SCREEN_WIDTH,
         THICKNESS
     };
 
-    SDL_Rect bottomWall {
+    SDL_Rect bottomWall{
         0,
         SCREEN_HEIGHT - THICKNESS,
         SCREEN_WIDTH,
@@ -244,10 +240,10 @@ void Game::GenerateOutput() {
     SDL_RenderFillRect(mRenderer, &topWall);
     SDL_RenderFillRect(mRenderer, &bottomWall);
 
-    for (const auto& b : mBalls) {
-        SDL_Rect ball {
-            static_cast<int>(b.pos.x - THICKNESS/2.0f),
-            static_cast<int>(b.pos.y - THICKNESS/2.0f),
+    for (const auto &b: mBalls) {
+        SDL_Rect ball{
+            static_cast<int>(b.pos.x - THICKNESS / 2.0f),
+            static_cast<int>(b.pos.y - THICKNESS / 2.0f),
             THICKNESS,
             THICKNESS
         };
@@ -255,16 +251,16 @@ void Game::GenerateOutput() {
         SDL_RenderFillRect(mRenderer, &ball);
     }
 
-    SDL_Rect leftPaddle {
-        static_cast<int>(mLeftPaddlePos.x - THICKNESS/2.0f),
-        static_cast<int>(mLeftPaddlePos.y - PADDLE_HEIGHT/2.0f),
+    SDL_Rect leftPaddle{
+        static_cast<int>(mLeftPaddlePos.x - THICKNESS / 2.0f),
+        static_cast<int>(mLeftPaddlePos.y - PADDLE_HEIGHT / 2.0f),
         THICKNESS,
         PADDLE_HEIGHT
     };
 
-    SDL_Rect rightPaddle {
-        static_cast<int>(mRightPaddlePos.x - THICKNESS/2.0f),
-        static_cast<int>(mRightPaddlePos.y - PADDLE_HEIGHT/2.0f),
+    SDL_Rect rightPaddle{
+        static_cast<int>(mRightPaddlePos.x - THICKNESS / 2.0f),
+        static_cast<int>(mRightPaddlePos.y - PADDLE_HEIGHT / 2.0f),
         THICKNESS,
         PADDLE_HEIGHT
     };
