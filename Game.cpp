@@ -35,7 +35,7 @@ bool Game::Initialize() {
     }
 
     mWindow = SDL_CreateWindow(
-        "Game Programming in C++ (Chapter 1)",
+        "Pong Game",
         100,
         100,
         SCREEN_WIDTH,
